@@ -23,6 +23,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Stage 2 External Stylesheet Reference -->
+  
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+
   <link rel="stylesheet" href="style.css">
 
   <!-- Stage 3 External JavaScript Reference -->
@@ -312,6 +316,11 @@
                 </label>
                 <span class="field-error" id="consent-error" role="alert"></span>
               </div>
+              
+              <!-- Yahan AAPKI_SITE_KEY ki jagah Cloudflare se mili Site Key paste karein -->
+<div class="cf-turnstile" data-sitekey="AAPKI_SITE_KEY" data-theme="light" style="margin: 15px 0;"></div>
+
+              
 
               <button type="submit" class="btn btn--primary btn--block" id="enquiry-submit-btn">
                 Submit Admission Enquiry
@@ -528,6 +537,14 @@
           setFieldError('consent-error', 'Kripya permission checkbox par tick karein.');
           hasError = true;
         }
+        
+        // Turnstile Captcha Check
+const turnstileToken = form.querySelector('[name="cf-turnstile-response"]')?.value;
+if (!turnstileToken) {
+  showStatus('Kripya Captcha verify karein!', true);
+  return;
+}
+
 
         if (hasError) return;
 

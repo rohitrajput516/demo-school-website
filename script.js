@@ -949,33 +949,9 @@
       }
 
       // 3. ANTI-BOT CAPTCHA SETUP
-      var currentCaptcha = '';
-      var captchaContainer = document.createElement('div');
-      captchaContainer.className = 'captcha-container';
-      captchaContainer.innerHTML =
-        '<div class="captcha-header">' +
-        '<span class="captcha-code-box"></span>' +
-        '<button type="button" class="btn-refresh-captcha" title="Naya Code">🔄</button>' +
-        '</div>' +
-        '<input type="text" class="otp-field captcha-input" placeholder="Upar likha Captcha code dalein" required>';
-      submitBtn.insertAdjacentElement('beforebegin', captchaContainer);
+      
+      
 
-      var captchaBox = captchaContainer.querySelector('.captcha-code-box');
-      var refreshCaptchaBtn = captchaContainer.querySelector('.btn-refresh-captcha');
-      var captchaInput = captchaContainer.querySelector('.captcha-input');
-
-      function generateCaptcha() {
-        var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-        var code = '';
-        for (var i = 0; i < 5; i++) {
-          code += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        currentCaptcha = code;
-        captchaBox.textContent = code;
-        captchaInput.value = '';
-      }
-      refreshCaptchaBtn.addEventListener('click', generateCaptcha);
-      generateCaptcha();
 
       // 4. SEQUENTIAL SUBMISSION & VALIDATION LOGIC
       form.addEventListener(
@@ -1033,13 +1009,13 @@
             return;
           }
 
-          // Step 8: Captcha Verification Check
-          if (captchaInput.value.trim().toUpperCase() !== currentCaptcha) {
-            alert('Incorrect CAPTCHA code! Please enter the correct code.');
-            generateCaptcha();
-            captchaInput.focus();
-            return;
-          }
+          // Step 8: Real Cloudflare Turnstile Verification Check
+var turnstileResponse = form.querySelector('[name="cf-turnstile-response"]');
+if (!turnstileResponse || !turnstileResponse.value) {
+  alert('Please complete the Captcha verification!');
+  return;
+}
+
 
           // Form data prepare karna
           var formData = {
