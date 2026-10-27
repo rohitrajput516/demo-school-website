@@ -1,0 +1,374 @@
+/* ============================================================================
+   ADMIN PORTAL & DASHBOARD STYLES (admin.css)
+   ============================================================================ */
+
+.admin-auth-body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at top right, #1e4e7f 0%, #0f2942 60%, #071626 100%);
+  padding: 1.5rem 1rem;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 26rem;
+  background: #ffffff;
+  border-radius: 1rem;
+  padding: 2rem 1.5rem;
+  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.35);
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.auth-header h2 {
+  font-family: 'Merriweather', serif;
+  font-size: 1.35rem;
+  color: #0f2942;
+  margin-bottom: 0.25rem;
+}
+
+.auth-header p {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.auth-footer-links {
+  text-align: center;
+  margin-top: 0.75rem;
+}
+
+.auth-back-link {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1e4e7f;
+  text-decoration: none;
+}
+
+.auth-back-link:hover {
+  text-decoration: underline;
+}
+
+.admin-alert {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.admin-alert--error {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+.admin-alert--success {
+  background-color: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+/* Dashboard Layout & Components */
+.admin-dash-body {
+  background-color: #f1f5f9;
+  min-height: 100vh;
+  color: #1e293b;
+}
+
+.dash-topbar {
+  background-color: #071626;
+  color: #ffffff;
+  padding: 0.85rem 1rem;
+  border-bottom: 3px solid #d97706;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.dash-topbar__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.dash-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.dash-brand__title {
+  font-family: 'Merriweather', serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.dash-brand__subtitle {
+  font-size: 0.72rem;
+  color: #f59e0b;
+  display: block;
+}
+
+.dash-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.dash-user-badge {
+  font-size: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  color: #e2e8f0;
+}
+
+.btn-dash-sm {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-dash-outline {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+}
+
+.btn-dash-danger {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.dash-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 3rem;
+}
+
+.dash-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .dash-summary-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .dash-summary-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.summary-card {
+  background: #ffffff;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-top: 3px solid #0f2942;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.summary-card__val {
+  font-family: 'Merriweather', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f2942;
+  line-height: 1.2;
+}
+
+.summary-card__label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-top: 0.25rem;
+}
+
+.dash-tabs {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.25rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.dash-tab {
+  flex: 0 0 auto;
+  padding: 0.6rem 1.1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  cursor: pointer;
+}
+
+.dash-tab.is-active {
+  background: #0f2942;
+  color: #ffffff;
+  border-color: #0f2942;
+}
+
+.dash-panel {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .dash-panel {
+    grid-template-columns: 22rem 1fr;
+    align-items: start;
+  }
+}
+
+.dash-box {
+  background: #ffffff;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.dash-box__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f2942;
+  margin-bottom: 1rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.dash-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.dash-form-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.dash-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+}
+
+.dash-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.dash-table th,
+.dash-table td {
+  padding: 0.7rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: middle;
+}
+
+.dash-table th {
+  background: #f8fafc;
+  color: #0f2942;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.dash-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.table-actions {
+  display: flex;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
+.btn-act {
+  padding: 0.28rem 0.55rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-act--edit {
+  background: #e0ecff;
+  color: #1e4e7f;
+}
+
+.btn-act--del {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-pill {
+  display: inline-block;
+  padding: 0.18rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border-radius: 999px;
+  text-transform: capitalize;
+}
+
+.status-pill--present,
+.status-pill--paid,
+.status-pill--published {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-pill--absent,
+.status-pill--pending {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-pill--late,
+.status-pill--partial,
+.status-pill--draft {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.status-pill--excused {
+  background: #e0ecff;
+  color: #1e4e7f;
+}

@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin ERP Dashboard | Takshashila Vidya Mandir</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="admin.css">
+
+  <!-- Supabase JS Library & Config -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+</head>
+<body class="admin-dash-body">
+
+  <!-- Top Sticky Navigation Bar -->
+  <header class="dash-topbar">
+    <div class="dash-topbar__inner">
+      <div class="dash-brand">
+        <div class="brand__crest" style="width: 2.2rem; height: 2.2rem;">
+          <span class="brand__crest-Text" style="font-size: 0.75rem;">TVM</span>
+        </div>
+        <div>
+          <span class="dash-brand__title">TVM Admin ERP Dashboard</span>
+          <span class="dash-brand__subtitle">Practice Project — School Management System</span>
+        </div>
+      </div>
+      <div class="dash-topbar__actions">
+        <span class="dash-user-badge" id="current-user-email">Admin</span>
+        <a href="index.html" class="btn-dash-sm btn-dash-outline">Public Website</a>
+        <button type="button" id="logout-btn" class="btn-dash-sm btn-dash-danger">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="dash-main">
+    <!-- Notification Alert Box -->
+    <div id="dash-alert" class="admin-alert" hidden></div>
+
+    <!-- 1. Top Summary Counters -->
+    <section class="dash-summary-grid">
+      <div class="summary-card">
+        <div class="summary-card__val" id="count-enquiries">0</div>
+        <div class="summary-card__label">Admission Enquiries</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card__val" id="count-students">0</div>
+        <div class="summary-card__label">Total Students</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card__val" id="count-teachers">0</div>
+        <div class="summary-card__label">Faculty / Teachers</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card__val" id="count-classes">0</div>
+        <div class="summary-card__label">Classes</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card__val" id="count-fees">0</div>
+        <div class="summary-card__label">Fee Records</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card__val" id="count-notices">0 / 0</div>
+        <div class="summary-card__label">Published Notices</div>
+      </div>
+    </section>
+
+    <!-- 2. Navigation Module Tabs -->
+    <nav class="dash-tabs" role="tablist">
+      <button type="button" class="dash-tab is-active" data-tab="enquiries">Admission Enquiries</button>
+      <button type="button" class="dash-tab" data-tab="students">Students</button>
+      <button type="button" class="dash-tab" data-tab="classes">Classes</button>
+      <button type="button" class="dash-tab" data-tab="teachers">Teachers (Faculty)</button>
+      <button type="button" class="dash-tab" data-tab="attendance">Attendance</button>
+      <button type="button" class="dash-tab" data-tab="fees">Fees</button>
+      <button type="button" class="dash-tab" data-tab="notices">Notices</button>
+      <button type="button" class="dash-tab" data-tab="events">Events &amp; Calendar</button>
+      <button type="button" class="dash-tab" data-tab="faqs">FAQs</button>
+    </nav>
+
+    <!-- TAB 0: ADMISSION ENQUIRIES (PUBLIC FORM SUBMISSIONS) -->
+    <section class="dash-panel" id="tab-enquiries" style="grid-template-columns: 1fr;">
+      <div class="dash-box">
+        <h3 class="dash-box__title">Online Admission Enquiries (Submitted from Website)</h3>
+        <div class="dash-table-wrap">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Student &amp; Parent</th>
+                <th>Class Applied</th>
+                <th>Phone &amp; Email</th>
+                <th>Query / Message</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="table-enquiries-body">
+              <tr><td colspan="7">Enquiries load ho rahi hain...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 1: STUDENTS -->
+    <section class="dash-panel" id="tab-students" hidden>
+      <div class="dash-box">
+        <h3 class="dash-box__title">Add New Student</h3>
+        <form id="form-student" class="dash-form">
+          <div class="form-group">
+            <label class="form-label">Admission Number *</label>
+            <input type="text" id="stud-adm" class="form-input" placeholder="e.g. TVM2026001" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input type="text" id="stud-name" class="form-input" placeholder="e.g. Aarav Singh" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Assign Class</label>
+            <select id="stud-class" class="form-select">
+              <option value="">-- Select Class --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date of Birth</label>
+            <input type="date" id="stud-dob" class="form-input">
+          </div>
+          <button type="submit" class="btn btn--primary btn--sm">Save Student</button>
+        </form>
+      </div>
+      <div class="dash-box">
+        <h3 class="dash-box__title">Enrolled Students List</h3>
+        <div class="dash-table-wrap">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>Adm No</th>
+                <th>Full Name</th>
+                <th>Class</th>
+                <th>DOB</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="table-students-body">
+              <tr><td colspan="5">Data load ho raha hai...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: CLASSES -->
+    <section class="dash-panel" id="tab-classes" hidden>
+      <div class="dash-box">
+        <h3 class="dash-box__title">Add New Class</h3>
+        <form id="form-class" class="dash-form">
+          <div class="form-group">
+            <label class="form-label">Class Name *</label>
+            <input type="text" id="cls-name" class="form-input" placeholder="e.g. Class 10 or Class 12 Science" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Section</label>
+            <input type="text" id="cls-section" class="form-input" placeholder="e.g. A or PCM">
+          </div>
+          <button type="submit" class="btn btn--primary btn--sm">Save Class</button>
+        </form>
+      </div>
+      <div class="dash-box">
+        <h3 class="dash-box__title">Classes &amp; Sections List</h3>
+        <div class="dash-table-wrap">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Class Name</th>
+                <th>Section</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="table-classes-body">
+              <tr><td colspan="4">Data load ho raha hai...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: TEACHERS (FACULTY PAGE) -->
+    <section class="dash-panel" id="tab-teachers" hidden>
+      <div class="dash-box">
+        <h3 class="dash-box__title">Add Faculty / Teacher (Displays on Faculty Page)</h3>
+        <form id="form-teacher" class="dash-form">
+          <div class="form-group">
+            <label class="form-label">Teacher's Full Name *</label>
+            <input type="text" id="teach-name" class="form-input" placeholder="e.g. Mr. Rajeev Sharma" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Department *</label>
+            <input type="text" id="teach-dept" class="form-input" placeholder="e.g. Department of Mathematics" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Qualification &amp; Experience *</label>
+            <input type="text" id="teach-qual" class="form-input" placeholder="e.g. M.Sc. (Mathematics), B.Ed. • 16 Yrs Exp." required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Short Bio / Specialization *</label>
+            <textarea id="teach-bio" rows="3" class="form-textarea" placeholder="e.g. Specializes in Calculus, Coordinate Geometry, and NDA/JEE Foundation..." required></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Teacher Photo (Select from Phone Gallery)</label>
+            <input type="file" id="teach-photo" class="form-input" accept="image/*">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address (Optional)</label>
+            <input type="email" id="teach-email" class="form-input" placeholder="e.g. teacher@school.com">
+          </div>
+          <button type="submit" id="btn-save-teacher" class="btn btn--primary btn--sm">Save Teacher to Website</button>
+        </form>
+      </div>
+      <div class="dash-box">
+        <h3 class="dash-box__title">Current Faculty Members List</h3>
+        <div class="dash-table-wrap">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>Photo</th>
+                <th>Name &amp; Dept</th>
+                <th>Qualification</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="table-teachers-body">
+              <tr><td colspan="4">Data load ho raha hai...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: ATTENDANCE -->
+    <section class="dash-panel" id="tab-attendance" hidden>
+      <div class="dash-box">
+        <h3 class="dash-box__title">Mark Daily Attendance</h3>
+        <form id="form-attendance" class="dash-form">
+          <div class="form-group">
+            <label class="form-label">Select Student *</label>
+            <select id="att-student" class="form-select" required>
+              <option value="">-- Choose Student --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date *</label>
+            <input type="date" id="att-date" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Attendance Status *</label>
+            <select id="att-status" class="form-select" required>
+              <option value="present">Present</option>
+              <option value="absent">Absent</option>
+              <option value="late">Late</option>
+              <option value="excused">Excused Leave</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn--primary btn--sm">Log Attendance</button>
+        </form>
+      </div>
+      <div class="dash-box">
+        <h3 class="dash-box__title">Attendance History Logs</h3>
+        <div class="dash-table-wrap">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Student</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="table-attendance-body">
+              <tr><td colspan="4">Data load ho raha hai...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: FEES -->
+    <section class="dash-panel" id="tab-fees" hidden>
+      <div class="dash-box">
+        <h3 class="dash-box__title">Record Fee Entry</h3>
+        <form id="form-fees" class="dash-form">
+          <div class="form-group">
+            <label class="form-label">Select Student *</label>
+            <select id="fee-student" class="form-select" required>
+              <option value="">-- Choose Student --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Amount (₹) *</label>
+            <input type="number" id="fee-amount" class="form-input" placeholder="e.g. 5000" min="0" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Due Date</label>
+            <input type="date" id="fee-due-date" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Payment Status *</label>
+            <select id="fee-status" class="form-select" required>
+              <option value="pending">Pending</option>
+              <option value="paid">Paid</option>
+              <option value="partial">Partial</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn--primary btn--sm">Save Fee Record</button>
+        </form>
+      </div>
+      <div class="dash-box">
+        <h3 class="dash-box__title">All Fee Records</h3>
+        <div class="dash-table-wrap">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Amount</th>
+                <th>Due Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="table-fees-body">
+              <tr><td colspan="5">Data load ho raha hai...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: NOTICES -->
+    <section class="dash-panel" id="tab-notices" hidden>
+      <div class="dash-box">
+        <h3 class="dash-box__title">Create Notice</h3>
+        <form id="form-notice" class="dash-form">
+          <div class="form-group">
+            <label class="form-label">Notice Title *</label>
+            <input type="text" id="not-title" class="form-input" placeholder="e.g. Winter Vacation Dates" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Notice Category *</label>
+            <select id="not-category" class="form-select" required>
+              <option value="academic">Academics</option>
+              <option value="admission">Admissions</option>
+              <option value="exam">Examinations</option>
+              <option value="holiday">Holidays</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Notice Details / Body *</label>
+            <textarea id="not-body" rows="4" class="form-textarea" placeholder="Enter notice details here..." required></textarea>
+          </div>
+          <div class="form-group form-group--checkbox">
+            <input type="checkbox" id="not-published" class="form-checkbox" checked>
+            <label for="not-published" class="form-checkbox-label">Publish on Public Website immediately</label>
+          </div>
+          <button type="submit" class="btn btn--primary btn--sm">Save Notice</button>
+        </form>
+      </div>
+      <div class="dash-box">
+        <h3 class="dash-box__title">All School Notices (Drafts &amp; Published)</h3>
+        <div class="dash-table-wrap">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>Title &amp; Body</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="table-notices-body">
+              <tr><td colspan="4">Data load ho raha hai...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 7: EVENTS & ACADEMIC CALENDAR -->
+     <section class="dash-panel" id="tab-events" hidden>
+      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+        <div class="dash-box">
+          <h3 class="dash-box__title">1. Add Upcoming Event Card</h3>
+          <form id="form-event" class="dash-form">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <div class="form-group">
+                <label class="form-label">Day (Date) *</label>
+                <input type="text" id="ev-day" class="form-input" placeholder="e.g. 31" maxlength="2" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Month (Short) *</label>
+                <input type="text" id="ev-month" class="form-input" placeholder="e.g. OCT or NOV" maxlength="4" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Category Tag / Badge *</label>
+              <input type="text" id="ev-badge" class="form-input" placeholder="e.g. STEM & Innovation or Sports" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Event Title *</label>
+              <input type="text" id="ev-title" class="form-input" placeholder="e.g. Annual Science Exhibition" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Time &amp; Venue *</label>
+              <input type="text" id="ev-meta" class="form-input" placeholder="e.g. 09:00 AM - 01:00 PM • Main Auditorium" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Short Description *</label>
+              <textarea id="ev-desc" rows="3" class="form-textarea" placeholder="Enter event details..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn--primary btn--sm">Save Upcoming Event</button>
+          </form>
+        </div>
+
+        <div class="dash-box">
+          <h3 class="dash-box__title">2. Add Academic Year Calendar Row</h3>
+          <form id="form-calendar" class="dash-form">
+            <div class="form-group">
+              <label class="form-label">Academic Milestone *</label>
+              <input type="text" id="cal-milestone" class="form-input" placeholder="e.g. Term-I / Half-Yearly Exams" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tentative Schedule (Dates) *</label>
+              <input type="text" id="cal-schedule" class="form-input" placeholder="e.g. Nov 09 – Nov 21, 2026" required>
+            </div>
+            <button type="submit" class="btn btn--primary btn--sm">Add to Calendar Table</button>
+          </form>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+        <div class="dash-box">
+          <h3 class="dash-box__title">Upcoming Events on Website</h3>
+          <div class="dash-table-wrap">
+            <table class="dash-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Event Details</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="table-events-body">
+                <tr><td colspan="3">Data load ho raha hai...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="dash-box">
+          <h3 class="dash-box__title">Academic Calendar Table Rows</h3>
+          <div class="dash-table-wrap">
+            <table class="dash-table">
+              <thead>
+                <tr>
+                  <th>Academic Milestone</th>
+                  <th>Schedule</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="table-calendar-body">
+                <tr><td colspan="3">Data load ho raha hai...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 8: FAQS (CONTACT PAGE) -->
+    <section class="dash-panel" id="tab-faqs" hidden>
+      <div class="dash-box">
+        <h3 class="dash-box__title">Add New FAQ (Displays on Contact Page)</h3>
+        <form id="form-faq" class="dash-form">
+          <div class="form-group">
+            <label class="form-label">Question *</label>
+            <input type="text" id="faq-question" class="form-input" placeholder="e.g. What are the regular school timings?" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Answer *</label>
+            <textarea id="faq-answer" rows="4" class="form-textarea" placeholder="Enter clear answer for parents..." required></textarea>
+          </div>
+          <button type="submit" class="btn btn--primary btn--sm">Save FAQ to Website</button>
+        </form>
+      </div>
+      <div class="dash-box">
+        <h3 class="dash-box__title">Published FAQs List</h3>
+        <div class="dash-table-wrap">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>Question &amp; Answer</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="table-faqs-body">
+              <tr><td colspan="2">Data load ho raha hai...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Dash logic script -->
+  <script src="admin.js"></script>
+</body>
+</html>

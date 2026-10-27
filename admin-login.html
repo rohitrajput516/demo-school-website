@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Portal Login | Takshashila Vidya Mandir</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="admin.css">
+
+  <!-- Supabase Official JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Aapki Connection File -->
+  <script src="supabase-config.js"></script>
+</head>
+<body class="admin-auth-body">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="brand__crest" style="margin: 0 auto 0.75rem auto;">
+        <span class="brand__crest-Text">TVM</span>
+      </div>
+      <h2>Staff &amp; Admin Portal</h2>
+      <p>Takshashila Vidya Mandir Management System</p>
+    </div>
+
+    <!-- Error ya Success dikhane wala box -->
+    <div id="auth-alert" class="admin-alert" hidden></div>
+
+    <form id="admin-login-form" class="auth-form" novalidate>
+      <div class="form-group">
+        <label for="login-email" class="form-label">Admin Email</label>
+        <input 
+          type="email" 
+          id="login-email" 
+          class="form-input" 
+          placeholder="admin@school.com" 
+          required 
+          autocomplete="username"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="login-password" class="form-label">Password</label>
+        <input 
+          type="password" 
+          id="login-password" 
+          class="form-input" 
+          placeholder="Enter your password" 
+          required 
+          autocomplete="current-password"
+        >
+      </div>
+
+      <button type="submit" id="login-submit-btn" class="btn btn--primary btn--block">
+        Sign In to Dashboard
+      </button>
+
+      <div class="auth-footer-links">
+        <a href="index.html" class="auth-back-link">&larr; Return to Public Website</a>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const loginForm = document.getElementById('admin-login-form');
+      const submitBtn = document.getElementById('login-submit-btn');
+      const alertBox = document.getElementById('auth-alert');
+
+      function showAlert(msg, isError = true) {
+        alertBox.textContent = msg;
+        alertBox.className = isError ? 'admin-alert admin-alert--error' : 'admin-alert admin-alert--success';
+        alertBox.hidden = false;
+      }
+
+      if (!window.sbClient) {
+        showAlert('Supabase connect nahi hua. supabase-config.js check karein.');
+        return;
+      }
+
+      // Check karein agar Admin pehle se logged-in hai
+      try {
+        const { data: { session } } = await window.sbClient.auth.getSession();
+        if (session) {
+          const { data: isAdmin } = await window.sbClient.rpc('is_admin');
+          if (isAdmin) {
+            window.location.replace('admin-dashboard.html');
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('Session check:', e);
+      }
+
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        alertBox.hidden = true;
+
+        const email = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
+
+        if (!email || !password) {
+          showAlert('Kripya Email aur Password dono bharein.');
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Verifying credentials...';
+
+        try {
+          // Step 1: Supabase Auth me email-password check karna
+          const { data, error } = await window.sbClient.auth.signInWithPassword({
+            email: email,
+            password: password,
+          });
+
+          if (error) throw error;
+
+          // Step 2: Database me is_admin() check karna
+          const { data: isAdmin, error: adminErr } = await window.sbClient.rpc('is_admin');
+
+          if (adminErr || !isAdmin) {
+            await window.sbClient.auth.signOut();
+            throw new Error('Access Denied: Yeh account admin_users table me darj nahi hai.');
+          }
+
+          showAlert('Login Safal! Dashboard khul raha hai...', false);
+          setTimeout(() => {
+            window.location.replace('admin-dashboard.html');
+          }, 600);
+
+        } catch (err) {
+          showAlert(err.message || 'Login fail hua. Email ya Password dobara check karein.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Sign In to Dashboard';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

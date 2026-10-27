@@ -55,8 +55,8 @@
         </a>
         <span class="top-bar__divider" aria-hidden="true">|</span>
         <!-- Future Stage 6 ERP / Admin / Student Portal Hook -->
-        <a href="index.html#portal-notice" class="top-bar__portal-link" id="portal-login-link" data-portal-trigger="true">
-          ERP Portal (Coming Soon)
+        <a href="admin-login.html" class="top-bar__portal-link" id="portal-login-link" >
+          ERP Portal
         </a>
       </div>
     </div>
@@ -317,7 +317,7 @@
                 Submit Admission Enquiry
               </button>
               <p class="form-disclaimer">
-                Note: Stage 1–3 validates and stores demo enquiries locally. Live database storage will be connected in Stage 6.
+                Note: Your details are securely saved in our official school admission database.
               </p>
             </form>
           </div>
@@ -452,6 +452,109 @@
   >
     &uarr;
   </button>
+  
+    <!-- Supabase Library & Direct Backend Enquiry System -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('admission-enquiry-form');
+      const statusBanner = document.getElementById('enquiry-form-status');
+      const submitBtn = document.getElementById('enquiry-submit-btn');
+
+      if (!form || !window.sbClient) return;
+
+      function setFieldError(id, msg) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = msg;
+      }
+
+      function clearErrors() {
+        ['student-name-error', 'parent-name-error', 'parent-phone-error', 'parent-email-error', 'applying-class-error', 'consent-error']
+          .forEach(id => setFieldError(id, ''));
+        if (statusBanner) statusBanner.hidden = true;
+      }
+
+      function showStatus(msg, isError = false) {
+        if (!statusBanner) {
+          alert(msg);
+          return;
+        }
+        statusBanner.textContent = msg;
+        statusBanner.style.padding = '0.85rem 1rem';
+        statusBanner.style.borderRadius = '0.5rem';
+        statusBanner.style.marginBottom = '1rem';
+        statusBanner.style.fontWeight = '600';
+        statusBanner.style.backgroundColor = isError ? '#fee2e2' : '#dcfce7';
+        statusBanner.style.color = isError ? '#b91c1c' : '#15803d';
+        statusBanner.style.border = isError ? '1px solid #f87171' : '1px solid #4ade80';
+        statusBanner.hidden = false;
+      }
+
+      // Capture mode (true) + stopImmediatePropagation() purane email/script.js handler ko 100% band kar dega
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        clearErrors();
+
+        const student_name = document.getElementById('student-name').value.trim();
+        const parent_name = document.getElementById('parent-name').value.trim();
+        const phone = document.getElementById('parent-phone').value.trim();
+        const email = document.getElementById('parent-email').value.trim();
+        const target_class = document.getElementById('applying-class').value;
+        const transport = document.getElementById('transport-required').value;
+        const rawMsg = document.getElementById('enquiry-message').value.trim();
+        const consent = document.getElementById('consent-checkbox').checked;
+
+        // Form Validation Check
+        let hasError = false;
+        if (student_name.length < 2) {
+          setFieldError('student-name-error', 'Kripya student ka poora naam likhein.');
+          hasError = true;
+        }
+        if (parent_name.length < 2) {
+          setFieldError('parent-name-error', 'Kripya parent/guardian ka naam likhein.');
+          hasError = true;
+        }
+        if (!/^[6-9]\d{9}$/.test(phone)) {
+          setFieldError('parent-phone-error', 'Kripya 10-digit ka valid mobile number dalein.');
+          hasError = true;
+        }
+        if (!target_class) {
+          setFieldError('applying-class-error', 'Kripya class select karein.');
+          hasError = true;
+        }
+        if (!consent) {
+          setFieldError('consent-error', 'Kripya permission checkbox par tick karein.');
+          hasError = true;
+        }
+
+        if (hasError) return;
+
+        const message = `[Bus Required: ${transport}] ${rawMsg}`.trim();
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting to School Database...';
+
+        try {
+          const { error } = await window.sbClient
+            .from('admission_enquiries')
+            .insert([{ student_name, parent_name, phone, email, target_class, message }]);
+
+          if (error) throw error;
+
+          form.reset();
+          showStatus('Dhanyawad! Aapki Admission Enquiry safalta-purvak darj ho gayi hai. School team aapse jald sampark karegi.', false);
+        } catch (err) {
+          showStatus('Enquiry submit nahi ho saki: ' + err.message, true);
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Admission Enquiry';
+        }
+      }, true);
+    });
+  </script>
+
 
 </body>
 </html>

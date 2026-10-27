@@ -27,6 +27,12 @@
 
   <!-- Stage 3 External JavaScript Reference -->
   <script src="script.js" defer></script>
+  
+  <!-- Supabase Library & Config -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+
+
 </head>
 <body>
 
@@ -55,8 +61,8 @@
         </a>
         <span class="top-bar__divider" aria-hidden="true">|</span>
         <!-- Future Stage 6 ERP / Admin / Student Portal Hook -->
-        <a href="index.html#portal-notice" class="top-bar__portal-link" id="portal-login-link" data-portal-trigger="true">
-          ERP Portal (Coming Soon)
+        <a href="admin-login.html" class="top-bar__portal-link" id="portal-login-link"   >
+          ERP Portal
         </a>
       </div>
     </div>
@@ -204,7 +210,13 @@
         </div>
 
         <div class="faq-list" id="faq-accordion">
+          
+          <div id="faq-loading" style="text-align: center; padding: 2rem; font-weight: 600; color: #475569;">FAQs load ho rahe hain...</div>
+
+
           <!-- FAQ Item 1 -->
+          
+          <!--
           <article class="faq-item">
             <h3 class="faq-item__heading">
               <button
@@ -229,8 +241,11 @@
               </p>
             </div>
           </article>
+          
+          -->
 
           <!-- FAQ Item 2 -->
+          <!--
           <article class="faq-item">
             <h3 class="faq-item__heading">
               <button
@@ -257,8 +272,10 @@
               </p>
             </div>
           </article>
+          -->
 
           <!-- FAQ Item 3 -->
+                    <!--
           <article class="faq-item">
             <h3 class="faq-item__heading">
               <button
@@ -284,8 +301,10 @@
               </p>
             </div>
           </article>
+                    -->
 
           <!-- FAQ Item 4 -->
+                    <!--
           <article class="faq-item">
             <h3 class="faq-item__heading">
               <button
@@ -311,8 +330,10 @@
               </p>
             </div>
           </article>
+                    -->
 
           <!-- FAQ Item 5 -->
+                    <!--
           <article class="faq-item">
             <h3 class="faq-item__heading">
               <button
@@ -338,9 +359,12 @@
               </p>
             </div>
           </article>
+                    -->
         </div>
       </div>
     </section>
+    
+    
 
 
   </main>
@@ -467,6 +491,90 @@
   >
     &uarr;
   </button>
+  
+
+   <script>
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!window.sbClient) return;
+
+  // FAQ container dhoondein
+  const faqBox = document.getElementById('faq-list') || 
+                 document.getElementById('faq-accordion') || 
+                 document.querySelector('.faq-list') || 
+                 document.querySelector('.faq-accordion');
+
+  if (!faqBox) return;
+
+  // **bold** text aur line break format karne ke liye function
+  function formatFaqAnswer(text) {
+    if (!text) return '';
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong style="color: #0f2942; font-weight: 700;">$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/\n/g, '<br>');
+  }
+
+  try {
+    const { data: faqs, error } = await window.sbClient
+      .from('faqs')
+      .select('*')
+      .order('id', { ascending: true });
+
+    if (error || !faqs || faqs.length === 0) return;
+
+    // Video ke mechanism jaisa HTML structure
+    faqBox.innerHTML = faqs.map((f, idx) => `
+      <div class="faq-item" id="faq-item-${idx}" style="border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 12px; background: #ffffff; overflow: hidden; transition: border-color 0.2s ease;">
+        <button type="button" onclick="toggleFaq(${idx})" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 18px 22px; background: #ffffff; border: none; text-align: left; font-family: inherit; font-size: 1rem; font-weight: 600; color: #0f2942; cursor: pointer; gap: 16px;">
+          <span style="line-height: 1.45;">${f.question}</span>
+          <span id="faq-btn-${idx}" style="min-width: 32px; width: 32px; height: 32px; border-radius: 50%; background: #eff6ff; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 500; line-height: 1; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.25s ease, color 0.25s ease;">
+            +
+          </span>
+        </button>
+        <div id="faq-panel-${idx}" style="max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;">
+          <div style="padding: 0 22px 20px 22px; color: #475569; font-size: 0.92rem; line-height: 1.65; border-top: 1px solid #f8fafc;">
+            <p style="margin: 12px 0 0 0;">${formatFaqAnswer(f.answer)}</p>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    // Toggle mechanism (+ se rotate hokar × banna)
+    window.toggleFaq = (idx) => {
+      const panel = document.getElementById(`faq-panel-${idx}`);
+      const btn = document.getElementById(`faq-btn-${idx}`);
+      const card = document.getElementById(`faq-item-${idx}`);
+      if (!panel || !btn) return;
+
+      const isOpen = panel.style.maxHeight && panel.style.maxHeight !== '0px';
+
+      if (isOpen) {
+        // Band karna (+ par wapas laana)
+        panel.style.maxHeight = '0px';
+        panel.style.opacity = '0';
+        btn.style.transform = 'rotate(0deg)';
+        btn.style.background = '#eff6ff';
+        btn.style.color = '#0284c7';
+        if (card) card.style.borderColor = '#e2e8f0';
+      } else {
+        // Kholna (Rotate hokar × banna)
+        panel.style.maxHeight = panel.scrollHeight + 40 + 'px';
+        panel.style.opacity = '1';
+        btn.style.transform = 'rotate(45deg)';
+        btn.style.background = '#fef3c7';
+        btn.style.color = '#b45309';
+        if (card) card.style.borderColor = '#cbd5e1';
+      }
+    };
+
+  } catch (err) {
+    console.error('FAQ loading error:', err);
+  }
+});
+</script>
+ 
+
+
 
 </body>
 </html>

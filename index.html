@@ -27,6 +27,13 @@
 
   <!-- Stage 3 External JavaScript Reference -->
   <script src="script.js" defer></script>
+  
+  
+    <!-- Supabase Library & Config -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+
+
 </head>
 <body>
 
@@ -55,9 +62,10 @@
         </a>
         <span class="top-bar__divider" aria-hidden="true">|</span>
         <!-- Future Stage 6 ERP / Admin / Student Portal Hook -->
-        <a href="#portal-notice" class="top-bar__portal-link" id="portal-login-link" data-portal-trigger="true">
-          ERP Portal (Coming Soon)
-        </a>
+       <a href="admin-login.html" class="top-bar__portal-link" id="portal-login-link">
+          ERP Portal
+       </a>
+
       </div>
     </div>
   </div>
@@ -314,6 +322,7 @@
         <!-- Notices List Container (Stage 6 API Compatible) -->
         <div class="notices-grid" id="notices-list" aria-live="polite">
           <!-- Notice 1 -->
+          <!--
           <article class="notice-card" data-notice-category="admission" data-notice-pinned="true">
             <div class="notice-card__meta">
               <span class="badge badge--accent">Admission</span>
@@ -330,8 +339,10 @@
               <a href="admissions.html" class="notice-card__link">Submit Enquiry Form &rarr;</a>
             </div>
           </article>
+          -->
 
           <!-- Notice 2 -->
+                    <!--
           <article class="notice-card" data-notice-category="exam">
             <div class="notice-card__meta">
               <span class="badge badge--warning">Examination</span>
@@ -348,8 +359,10 @@
               <a href="contact.html" class="notice-card__link">Contact Exam Cell for Queries &rarr;</a>
             </div>
           </article>
+                    -->
 
           <!-- Notice 3 -->
+                    <!--
           <article class="notice-card" data-notice-category="academic">
             <div class="notice-card__meta">
               <span class="badge badge--soft">Academics</span>
@@ -366,8 +379,10 @@
               <a href="events.html" class="notice-card__link">View Event Schedule &rarr;</a>
             </div>
           </article>
+                    -->
 
           <!-- Notice 4 -->
+                    <!--
           <article class="notice-card" data-notice-category="holiday">
             <div class="notice-card__meta">
               <span class="badge badge--success">Holiday</span>
@@ -384,6 +399,7 @@
               <a href="contact.html#faq" class="notice-card__link">Check Timings in FAQ &rarr;</a>
             </div>
           </article>
+                    -->       
         </div>
 
         <!-- Empty State Container for Notice Search/Filter (Controlled by Stage 3 JS) -->
@@ -541,6 +557,120 @@
   >
     &uarr;
   </button>
+  
+    <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const noticesGrid = document.getElementById('notices-list');
+      const emptyState = document.getElementById('notices-empty-state');
+      const filterBtns = Array.from(document.querySelectorAll('#notice-filter-buttons .filter-tab'));
+      const searchInput = document.getElementById('notice-search-input');
+      const resetBtn = document.getElementById('reset-notice-filters');
+
+      if (!noticesGrid || !window.sbClient) return;
+
+      let allNotices = [];
+      let activeCategory = 'all';
+      let searchQuery = '';
+
+      function renderNotices() {
+        const query = searchQuery.trim().toLowerCase();
+        const filtered = allNotices.filter(item => {
+          const matchCat = activeCategory === 'all' || item.category === activeCategory;
+          const matchSearch = !query || 
+            item.title.toLowerCase().includes(query) || 
+            item.body.toLowerCase().includes(query);
+          return matchCat && matchSearch;
+        });
+
+        if (filtered.length === 0) {
+          noticesGrid.innerHTML = '';
+          if (emptyState) emptyState.hidden = false;
+          return;
+        }
+
+        if (emptyState) emptyState.hidden = true;
+
+        const categoryLabels = {
+          academic: { label: 'Academics', class: 'badge--soft' },
+          admission: { label: 'Admission', class: 'badge--accent' },
+          exam: { label: 'Examination', class: 'badge--warning' },
+          holiday: { label: 'Holiday', class: 'badge--success' }
+        };
+
+        noticesGrid.innerHTML = filtered.map(notice => {
+          const dateStr = new Date(notice.created_at).toLocaleDateString('en-IN', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          });
+          const catInfo = categoryLabels[notice.category] || categoryLabels.academic;
+
+          return `
+            <article class="notice-card" data-notice-category="${notice.category || 'academic'}" data-notice-pinned="true">
+              <div class="notice-card__meta">
+                <span class="badge ${catInfo.class}">${catInfo.label}</span>
+                <time class="notice-card__date">${dateStr}</time>
+                <span class="notice-card__ref">Ref: TVM/${notice.id}</span>
+              </div>
+              <h3 class="notice-card__title">${notice.title}</h3>
+              <p class="notice-card__summary">${notice.body}</p>
+              <div class="notice-card__footer">
+                <span class="notice-card__link">Authorized by TVM Administration &check;</span>
+              </div>
+            </article>
+          `;
+        }).join('');
+      }
+
+      try {
+        const { data, error } = await window.sbClient
+          .from('notices')
+          .select('*')
+          .eq('published', true)
+          .order('id', { ascending: false });
+
+        if (error) throw error;
+        allNotices = data || [];
+        renderNotices();
+      } catch (err) {
+        console.error('Fetch error:', err);
+      }
+
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          activeCategory = btn.getAttribute('data-notice-filter') || 'all';
+          filterBtns.forEach(b => {
+            const isMatch = b === btn;
+            b.classList.toggle('is-active', isMatch);
+            b.setAttribute('aria-selected', String(isMatch));
+          });
+          renderNotices();
+        });
+      });
+
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          searchQuery = e.target.value || '';
+          renderNotices();
+        });
+      }
+
+      if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+          activeCategory = 'all';
+          searchQuery = '';
+          if (searchInput) searchInput.value = '';
+          filterBtns.forEach(b => {
+            const isAll = b.getAttribute('data-notice-filter') === 'all';
+            b.classList.toggle('is-active', isAll);
+            b.setAttribute('aria-selected', String(isAll));
+          });
+          renderNotices();
+        });
+      }
+    });
+  </script>
+
 
 </body>
 </html>
