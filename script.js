@@ -889,69 +889,6 @@
         }
       });
 
-      // 2. OPTIONAL EMAIL (GMAIL) OTP SETUP
-      if (emailInput) {
-        var emailVerifyBox = document.createElement('div');
-        emailVerifyBox.className = 'verify-box';
-        emailVerifyBox.style.display = 'none';
-        emailVerifyBox.innerHTML =
-          '<button type="button" class="btn-otp send-email-otp">Send Email OTP</button>' +
-          '<span class="verify-status email-status">✓ Email Verified</span>' +
-          '<div class="otp-input-wrap email-otp-wrap">' +
-          '<input type="text" class="otp-field email-otp-input" placeholder="4-digit Email OTP dalein" maxlength="4">' +
-          '<button type="button" class="btn-otp verify-email-btn">Verify</button>' +
-          '</div>';
-        emailInput.insertAdjacentElement('afterend', emailVerifyBox);
-
-        var sendEmailBtn = emailVerifyBox.querySelector('.send-email-otp');
-        var emailStatus = emailVerifyBox.querySelector('.email-status');
-        var emailOtpWrap = emailVerifyBox.querySelector('.email-otp-wrap');
-        var emailOtpInput = emailVerifyBox.querySelector('.email-otp-input');
-        var verifyEmailBtn = emailVerifyBox.querySelector('.verify-email-btn');
-
-        emailInput.addEventListener('input', function () {
-          var val = emailInput.value.trim();
-          isEmailVerified = false;
-          emailStatus.classList.remove('is-verified');
-          emailOtpWrap.classList.remove('is-active');
-          sendEmailBtn.style.display = 'inline-block';
-          sendEmailBtn.textContent = 'Send Email OTP';
-          if (val.length > 0) {
-            emailVerifyBox.style.display = 'flex';
-          } else {
-            emailVerifyBox.style.display = 'none';
-          }
-        });
-
-        sendEmailBtn.addEventListener('click', function () {
-          var val = emailInput.value.trim();
-          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
-            alert('Kripya sahi Email ID dalein!');
-            emailInput.focus();
-            return;
-          }
-          generatedEmailOTP = String(Math.floor(1000 + Math.random() * 9000));
-          emailOtpWrap.classList.add('is-active');
-          sendEmailBtn.textContent = 'Resend OTP';
-          alert('The OTP for your email ID (' + val + ') is: ' + generatedEmailOTP);
-        });
-
-        verifyEmailBtn.addEventListener('click', function () {
-          if (emailOtpInput.value.trim() === generatedEmailOTP && generatedEmailOTP !== null) {
-            isEmailVerified = true;
-            emailOtpWrap.classList.remove('is-active');
-            sendEmailBtn.style.display = 'none';
-            emailStatus.classList.add('is-verified');
-          } else {
-            alert('Incorrect email OTP! Please enter the correct OTP.');
-          }
-        });
-      }
-
-      // 3. ANTI-BOT CAPTCHA SETUP
-      
-      
-
 
       // 4. SEQUENTIAL SUBMISSION & VALIDATION LOGIC
       form.addEventListener(
