@@ -1048,3 +1048,213 @@ if (!turnstileResponse || !turnstileResponse.value) {
     });
   });
 })();
+
+
+
+
+
+//SUPABASE & REAL EMAIL OTP VERIFICATION LOGIC 
+  src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+  src="supabase-config.js"
+
+    const OTP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzzWeXgZFUWPrR1ZMkp0MsQzaiM6rVDidNE1QY0CmwFE75iW4L_aQIrDsb9W1MC3SHV/exec";
+    let realGeneratedOTP = null;
+    let isRealEmailVerified = false;
+    let verifiedEmailAddress = "";
+
+    function setErr(id, msg) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = msg;
+    }
+
+    window.handleEmailInputChange = function() {
+      const emailInput = document.getElementById('parent-email');
+      if (isRealEmailVerified && emailInput.value.trim() !== verifiedEmailAddress) {
+        isRealEmailVerified = false;
+        realGeneratedOTP = null;
+        document.getElementById('email-verify-status').style.display = 'none';
+        const sendBtn = document.getElementById('btn-send-email-otp');
+        sendBtn.style.display = 'inline-block';
+        sendBtn.textContent = 'Send OTP';
+      }
+    };
+
+    window.sendRealEmailOTP = function() {
+      setErr('parent-email-error', '');
+      setErr('otp-box-error', '');
+
+      const emailInput = document.getElementById('parent-email');
+      const sendBtn = document.getElementById('btn-send-email-otp');
+      const otpBox = document.getElementById('email-otp-box');
+      const otpHint = document.getElementById('otp-sent-hint');
+      const otpInput = document.getElementById('email-otp-input');
+
+      const emailVal = emailInput.value.trim();
+      const studentName = document.getElementById('student-name')?.value.trim() || "Applicant";
+
+      if (!emailVal || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+        setErr('parent-email-error', 'Kripya pehle ek valid Email Address dalein!');
+        emailInput.focus();
+        return;
+      }
+
+      realGeneratedOTP = String(Math.floor(1000 + Math.random() * 9000));
+      sendBtn.disabled = true;
+      sendBtn.textContent = 'Sending...';
+
+      const reqUrl = `${OTP_SCRIPT_URL}?email=${encodeURIComponent(emailVal)}&otp=${encodeURIComponent(realGeneratedOTP)}&name=${encodeURIComponent(studentName)}`;
+
+      fetch(reqUrl, { method: 'GET', mode: 'no-cors' })
+        .then(() => {
+          otpBox.style.display = 'block';
+          otpHint.textContent = `4-digit OTP sent to ${emailVal}. Check your Gmail Inbox:`;
+          otpInput.value = '';
+          otpInput.focus();
+          sendBtn.disabled = false;
+          sendBtn.textContent = 'Resend OTP';
+        })
+        .catch(() => {
+          sendBtn.disabled = false;
+          sendBtn.textContent = 'Send OTP';
+          setErr('parent-email-error', 'Network error! OTP nahi bheja ja saka.');
+        });
+    };
+
+    window.verifyRealEmailOTP = function() {
+      setErr('otp-box-error', '');
+      const otpInput = document.getElementById('email-otp-input');
+      const emailInput = document.getElementById('parent-email');
+      const otpBox = document.getElementById('email-otp-box');
+      const sendBtn = document.getElementById('btn-send-email-otp');
+      const statusBadge = document.getElementById('email-verify-status');
+
+      const enteredOTP = otpInput.value.trim();
+
+      if (!enteredOTP || enteredOTP.length !== 4) {
+        setErr('otp-box-error', 'Kripya 4-digit ka OTP dalein.');
+        return;
+      }
+
+      if (enteredOTP === realGeneratedOTP && realGeneratedOTP !== null) {
+        isRealEmailVerified = true;
+        verifiedEmailAddress = emailInput.value.trim();
+
+        otpBox.style.display = 'none';
+        sendBtn.style.display = 'none';
+        emailInput.readOnly = true;
+        emailInput.style.backgroundColor = '#f1f5f9';
+        statusBadge.style.display = 'block';
+        setErr('parent-email-error', '');
+      } else {
+        setErr('otp-box-error', 'Galat OTP code! Apne Gmail me aaya sahi code dalein.');
+      }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('admission-enquiry-form');
+      const statusBanner = document.getElementById('enquiry-form-status');
+      const submitBtn = document.getElementById('enquiry-submit-btn');
+
+      if (!form) return;
+
+      function showBanner(msg, isError = false) {
+        if (!statusBanner) {
+          alert(msg);
+          return;
+        }
+        statusBanner.textContent = msg;
+        statusBanner.style.padding = '0.85rem 1rem';
+        statusBanner.style.borderRadius = '0.5rem';
+        statusBanner.style.marginBottom = '1rem';
+        statusBanner.style.fontWeight = '600';
+        statusBanner.style.backgroundColor = isError ? '#fee2e2' : '#dcfce7';
+        statusBanner.style.color = isError ? '#b91c1c' : '#15803d';
+        statusBanner.style.border = isError ? '1px solid #f87171' : '1px solid #4ade80';
+        statusBanner.hidden = false;
+      }
+
+      window.addEventListener('submit', async (e) => {
+        if (e.target.id !== 'admission-enquiry-form') return;
+
+        e.preventDefault();
+        e.stopImmediatePropagation();
+
+        ['student-name-error', 'parent-name-error', 'parent-phone-error', 'parent-email-error', 'applying-class-error', 'consent-error', 'otp-box-error']
+          .forEach(id => setErr(id, ''));
+        if (statusBanner) statusBanner.hidden = true;
+
+        const student_name = document.getElementById('student-name').value.trim();
+        const parent_name = document.getElementById('parent-name').value.trim();
+        const phone = document.getElementById('parent-phone').value.trim();
+        const email = document.getElementById('parent-email').value.trim();
+        const target_class = document.getElementById('applying-class').value;
+        const transport = document.getElementById('transport-required').value;
+        const rawMsg = document.getElementById('enquiry-message').value.trim();
+        const consent = document.getElementById('consent-checkbox').checked;
+
+        let hasError = false;
+
+        if (student_name.length < 2) { setErr('student-name-error', 'Kripya student ka poora naam likhein.'); hasError = true; }
+        if (parent_name.length < 2) { setErr('parent-name-error', 'Kripya parent ka naam likhein.'); hasError = true; }
+        if (!/^[6-9]\d{9}$/.test(phone)) { setErr('parent-phone-error', 'Kripya valid 10-digit mobile number dalein.'); hasError = true; }
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          setErr('parent-email-error', 'Email Address dalna mandatory hai.');
+          hasError = true;
+        } else if (!isRealEmailVerified || email !== verifiedEmailAddress) {
+          setErr('parent-email-error', 'Submit karne se pehle Send OTP daba kar Email verify karein!');
+          showBanner('Kripya pehle apna Email OTP se verify karein!', true);
+          hasError = true;
+        }
+        if (!target_class) { setErr('applying-class-error', 'Kripya class select karein.'); hasError = true; }
+        if (!consent) { setErr('consent-error', 'Kripya checkbox par tick karein.'); hasError = true; }
+
+        if (hasError) return;
+
+        const turnstileToken = form.querySelector('[name="cf-turnstile-response"]')?.value;
+        if (!turnstileToken) {
+          showBanner('Kripya Captcha verify karein!', true);
+          return;
+        }
+
+        if (!window.sbClient) {
+          showBanner('Database connection load nahi hua. Page refresh karein.', true);
+          return;
+        }
+
+        const message = `[Bus Required: ${transport}] ${rawMsg}`.trim();
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submissions to School Database...';
+
+        try {
+          const { error } = await window.sbClient
+            .from('admission_enquiries')
+            .insert([{ student_name, parent_name, phone, email, target_class, message }]);
+
+          if (error) throw error;
+
+          form.reset();
+          isRealEmailVerified = false;
+          realGeneratedOTP = null;
+          verifiedEmailAddress = "";
+          const emailInput = document.getElementById('parent-email');
+          emailInput.readOnly = false;
+          emailInput.style.backgroundColor = '';
+          const sendBtn = document.getElementById('btn-send-email-otp');
+          sendBtn.style.display = 'inline-block';
+          sendBtn.textContent = 'Send OTP';
+          document.getElementById('email-otp-box').style.display = 'none';
+          document.getElementById('email-verify-status').style.display = 'none';
+
+          if (window.turnstile) window.turnstile.reset();
+
+          showBanner('Dhanyawad! Aapki Admission Enquiry safalta-purvak darj ho gayi hai.', false);
+        } catch (err) {
+          showBanner('Enquiry submit nahi ho saki: ' + err.message, true);
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Admission Enquiry';
+        }
+      }, true);
+    });
+  
